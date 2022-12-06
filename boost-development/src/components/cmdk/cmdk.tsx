@@ -1,7 +1,24 @@
 import React from 'react'
 import * as Popover from '@radix-ui/react-popover'
 import { Command } from 'cmdk'
-import { Logo, LinearIcon, FigmaIcon, SlackIcon, YouTubeIcon, RaycastIcon } from '../../components'
+import { Logo, LinearIcon, FigmaIcon, SlackIcon, YouTubeIcon, RaycastIcon, GitHubIcon } from '../../components'
+import { MagnifyingGlassIcon } from '@radix-ui/react-icons'
+
+function QueryField({ onSubmit }: {
+  onSubmit: (value: string) => void
+}) {
+  const [query, setQuery] = React.useState('')
+  // Use for items where further user input is expected
+  // If user submits, take input and execute onSubmit with it
+
+
+  // For items which use QueryField: have a state tracker which, if set to true, enables rendering of queryfield.
+  // Items which use Queryfield should set that state tracker to true, and set onSubmit to a different function (also via state tracker?)
+
+  return (
+    <Command.Input value={query} onValueChange={setQuery} autoFocus placeholder='Enter query...' />
+  )
+}
 
 export function RaycastCMDK() {
   const theme = 'light'
@@ -13,25 +30,32 @@ export function RaycastCMDK() {
     inputRef?.current?.focus()
   }, [])
 
+  function wikiSearch() {
+    console.log('Performing wiki search...')
+
+  }
+
   return (
     <div id='cmdk' className="raycast">
       <Command className='cmdk-topelement' value={value} onValueChange={(v) => setValue(v)}>
         <div cmdk-raycast-top-shine="" />
-        <Command.Input ref={inputRef} autoFocus placeholder="Search for apps and commands..." />
+        <Command.Input ref={inputRef} autoFocus placeholder="Search commands..." />
+        <hr cmdk-raycast-loader="" />
+        <QueryField onSubmit={() => {}} />
         <hr cmdk-raycast-loader="" />
         <Command.List ref={listRef}>
           <Command.Empty>No results found.</Command.Empty>
           <Command.Group heading="Suggestions">
-            <Item value="Linear">
+            <Item isCommand value="Search Wikipedia" onSelect={wikiSearch}>
               <Logo>
-                <LinearIcon
+                <MagnifyingGlassIcon
                   style={{
                     width: 12,
                     height: 12,
                   }}
                 />
               </Logo>
-              Linear
+              Search Wikipedia
             </Item>
             <Item value="Figma">
               <Logo>
@@ -58,7 +82,7 @@ export function RaycastCMDK() {
               Raycast
             </Item>
           </Command.Group>
-          <Command.Group heading="Commands">
+          <Command.Group heading="Other">
             <Item isCommand value="Clipboard History">
               <Logo>
                 <ClipboardIcon />
@@ -98,13 +122,15 @@ function Item({
   children,
   value,
   isCommand = false,
+  onSelect,
 }: {
   children: React.ReactNode
   value: string
   isCommand?: boolean
+  onSelect?: (() => void)
 }) {
   return (
-    <Command.Item value={value} onSelect={() => { }}>
+    <Command.Item value={value} onSelect={() => { onSelect ? onSelect() : console.log('Please define handler for this item.') }}>
       {children}
       <span cmdk-raycast-meta="">{isCommand ? 'Command' : 'Application'}</span>
     </Command.Item>
