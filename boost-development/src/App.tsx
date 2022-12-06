@@ -1,27 +1,25 @@
 /// <reference types="chrome" />
 /// <reference types="vite-plugin-svgr/client" />
 
-import { FaceIcon, ImageIcon, SunIcon } from '@radix-ui/react-icons';
+import './styles/globals.scss'
+import './styles/index.scss'
 
-import logo from './logo.svg'
-import './App.css'
+import './styles/icons.scss'
 
-// function getLogo() {
-//   if (window.chrome) {
-//     return window.chrome.runtime.getURL(logo.toString())
-//   }
+import './styles/cmdk/vercel.scss'
+import './styles/cmdk/linear.scss'
+import './styles/cmdk/raycast.scss'
+import './styles/cmdk/framer.scss'
 
-//   return logo
-// }
+import { RaycastCMDK } from './components';
 
 function App() {
   return (
-    <div className="App">
+    <div className="App root">
       <header className="App-header">
-        {/* <img src={`${getLogo()}`} className="App-logo" alt="logo" /> */}
-        <p>Hello, hey!</p>
-        <p>I'm a Chrome Extension Popup!</p>
-        <FaceIcon />
+        <div>
+          <RaycastCMDK></RaycastCMDK>
+        </div>
       </header>
     </div>
   )
