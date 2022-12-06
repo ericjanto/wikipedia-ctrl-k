@@ -1,7 +1,11 @@
 .arc-boost {
   .raycast {
-    padding-top: 100px;
-    z-index: 99999999;
+    margin-top: 100px;
+    width: 100%;
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+    
 
     .cmdk-topelement {
       margin-left: auto;
