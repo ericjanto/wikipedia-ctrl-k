@@ -2,7 +2,7 @@ import React from 'react'
 import * as Popover from '@radix-ui/react-popover'
 import { Command } from 'cmdk'
 import { Logo, LinearIcon, FigmaIcon, SlackIcon, YouTubeIcon, RaycastIcon, GitHubIcon } from '../../components'
-import { FileTextIcon, MagnifyingGlassIcon, ShuffleIcon } from '@radix-ui/react-icons'
+import { EyeClosedIcon, FileTextIcon, MagnifyingGlassIcon, ShuffleIcon } from '@radix-ui/react-icons'
 
 function searchWiki(query: string) {
   window.location.assign('https://en.wikipedia.org/wiki/' + query.replace(' ', '_'))
@@ -21,6 +21,40 @@ function callTAFPage(s: string) {
 
 function randomWikiPage(s: string) {
   window.location.assign('https://en.wikipedia.org/wiki/Special:Random')
+}
+
+function toggleFocusMode(s: string) {
+  // First thing: try to get a specific element from wiki page and print it to console
+  const nav = document.getElementById('mw-navigation')
+  const footer = document.getElementById('footer')
+  const content = document.getElementById('content')
+
+  const focusIsActivated = nav?.style.visibility == 'hidden' ? true : false
+
+  if (!focusIsActivated) {
+    // @ts-expect-error
+    nav.style.visibility = 'hidden'
+    // @ts-expect-error
+    footer.style.visibility = 'hidden'
+    // @ts-expect-error
+    content.style.marginLeft = '5em'
+    // @ts-expect-error
+    content.style.marginRight = '5em'
+    // @ts-expect-error
+    content.style.borderRightWidth = '1px'
+  } else {
+    // @ts-expect-error
+    nav.style.visibility = 'unset'
+    // @ts-expect-error
+    footer.style.visibility = 'unset'
+    // @ts-expect-error
+    content.style.marginLeft = '10em'
+    // @ts-expect-error
+    content.style.borderRightWidth = '0'
+  }
+
+  // Determine via visibility of a specific element which is always there whether focus mode
+  // is activated or not
 }
 
 function QueryField({ inputRef, queryHandlerId, setVisibility }: {
@@ -57,6 +91,7 @@ function QueryField({ inputRef, queryHandlerId, setVisibility }: {
 
   return (
     <Command.Input
+      // @ts-expect-error
       ref={inputRef}
       style={{ paddingRight: '10px' }}
       value={query} onValueChange={setQuery}
@@ -97,6 +132,7 @@ export function RaycastCMDK() {
   }
 
   const [queryHandlerId, setQueryHandlerId] = React.useState('Please change the query handler id where necesseray')
+  const [focusActive, setFocusActive] = React.useState(false)
 
   return (
     <div id='cmdk' className="raycast">
@@ -107,7 +143,12 @@ export function RaycastCMDK() {
           {showQueryInput
             ?
             <Command className='cmd-query'>
-              <QueryField inputRef={queryInputRef} queryHandlerId={queryHandlerId} setVisibility={resetVisibility} />
+
+              <QueryField
+                // @ts-expect-error
+                inputRef={queryInputRef}
+                queryHandlerId={queryHandlerId}
+                setVisibility={resetVisibility} />
             </Command>
             : <></>
           }
@@ -149,17 +190,18 @@ export function RaycastCMDK() {
               </Logo>
               Show Random Article
             </Item>
-            <Item value="YouTube">
+          </Command.Group>
+          <Command.Group heading="Appearance">
+            <Item isCommand value="Toggle Focus Mode" onSelect={toggleFocusMode}>
               <Logo>
-                <YouTubeIcon />
+                <EyeClosedIcon
+                  style={{
+                    width: 12,
+                    height: 12,
+                  }}
+                />
               </Logo>
-              YouTube
-            </Item>
-            <Item value="Raycast">
-              <Logo>
-                <RaycastIcon />
-              </Logo>
-              Raycast
+              Toggle Focus Mode
             </Item>
           </Command.Group>
           <Command.Group heading="Other">
