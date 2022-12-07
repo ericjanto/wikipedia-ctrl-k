@@ -2,7 +2,8 @@ import React from 'react'
 import * as Popover from '@radix-ui/react-popover'
 import { Command } from 'cmdk'
 import { Logo, LinearIcon, FigmaIcon, SlackIcon, YouTubeIcon, RaycastIcon, GitHubIcon } from '../../components'
-import { EyeClosedIcon, FileTextIcon, MagnifyingGlassIcon, ShuffleIcon } from '@radix-ui/react-icons'
+import { EyeClosedIcon, FileTextIcon, Half2Icon, MagnifyingGlassIcon, ShuffleIcon } from '@radix-ui/react-icons'
+import { wikidarkmodecss } from '../../styles/wiki-darkmode'
 
 function searchWiki(query: string) {
   window.location.assign('https://en.wikipedia.org/wiki/' + query.replace(' ', '_'))
@@ -55,6 +56,22 @@ function toggleFocusMode(s: string) {
 
   // Determine via visibility of a specific element which is always there whether focus mode
   // is activated or not
+}
+
+function toggleDarkMode(s: string) {
+  const id = 'boostDarkmode'
+  const isActive = document.getElementById(id)
+  if (isActive) {
+    console.log('Deactivate')
+    var styleSheet = document.getElementById(id)
+    styleSheet?.remove()
+  } else {
+    console.log('Activate')
+    const styleSheet = document.createElement('style')
+    styleSheet.innerText = wikidarkmodecss
+    styleSheet.id = id
+    document.head.appendChild(styleSheet)
+  }
 }
 
 function QueryField({ inputRef, queryHandlerId, setVisibility }: {
@@ -202,6 +219,17 @@ export function RaycastCMDK() {
                 />
               </Logo>
               Toggle Focus Mode
+            </Item>
+            <Item isCommand value="Toggle Dark Mode" onSelect={toggleDarkMode}>
+              <Logo>
+                <Half2Icon
+                  style={{
+                    width: 12,
+                    height: 12,
+                  }}
+                />
+              </Logo>
+              Toggle Dark Mode
             </Item>
           </Command.Group>
           <Command.Group heading="Other">
