@@ -2,12 +2,52 @@ import React from 'react'
 import * as Popover from '@radix-ui/react-popover'
 import { Command } from 'cmdk'
 import { Logo, LinearIcon, FigmaIcon, SlackIcon, YouTubeIcon, RaycastIcon, GitHubIcon } from '../../components'
-import { MagnifyingGlassIcon } from '@radix-ui/react-icons'
+import { FileTextIcon, MagnifyingGlassIcon, ShuffleIcon } from '@radix-ui/react-icons'
 
-function QueryField({ onSubmit }: {
-  onSubmit: (value: string) => void
+function searchWiki(query: string) {
+  window.location.assign('https://en.wikipedia.org/wiki/' + query.replace(' ', '_'))
+}
+
+function callTAFPage(s: string) {
+  // Format: october_2,_2022
+  let d = new Date();
+  let ye = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(d);
+  let mo = new Intl.DateTimeFormat('en', { month: 'long' }).format(d);
+  let da = new Intl.DateTimeFormat('en', { day: 'numeric' }).format(d);
+
+  const wikidate = `${mo}_${da},_${ye}`
+  window.location.assign('https://en.wikipedia.org/wiki/Wikipedia:Today%27s_featured_article/' + wikidate)
+}
+
+function randomWikiPage(s: string) {
+  window.location.assign('https://en.wikipedia.org/wiki/Special:Random')
+}
+
+function QueryField({ inputRef, queryHandlerId, setVisibility }: {
+  inputRef: HTMLInputElement | null,
+  queryHandlerId: string,
+  setVisibility: React.Dispatch<React.SetStateAction<boolean>>,
 }) {
   const [query, setQuery] = React.useState('')
+
+  const handleSubmission = function (e: any) {
+    if (!e) e = window.event;
+    var keyCode = e.code || e.key;
+    if (keyCode == 'Enter') {
+      if (query) {
+        switch (queryHandlerId) {
+          case "searchWiki": searchWiki(query)
+            break;
+          default: console.log("Invalid queryHandlerId: ", queryHandlerId)
+        }
+        setVisibility(false)
+      }
+    } else if (keyCode == 'Escape') {
+      setQuery('')
+      setVisibility(false)
+    }
+  }
+
   // Use for items where further user input is expected
   // If user submits, take input and execute onSubmit with it
 
@@ -16,7 +56,13 @@ function QueryField({ onSubmit }: {
   // Items which use Queryfield should set that state tracker to true, and set onSubmit to a different function (also via state tracker?)
 
   return (
-    <Command.Input value={query} onValueChange={setQuery} autoFocus placeholder='Enter query...' />
+    <Command.Input
+      ref={inputRef}
+      style={{ paddingRight: '10px' }}
+      value={query} onValueChange={setQuery}
+      autoFocus
+      placeholder='Enter query...' onKeyDown={handleSubmission}
+    />
   )
 }
 
@@ -24,29 +70,53 @@ export function RaycastCMDK() {
   const theme = 'light'
   const [value, setValue] = React.useState('linear')
   const inputRef = React.useRef<HTMLInputElement | null>(null)
+  const queryInputRef = React.useRef<HTMLInputElement | null>(null)
   const listRef = React.useRef(null)
+
+  const [showQueryInput, setShowQueryInput] = React.useState(false)
+
+  const resetVisibility = () => {
+    setShowQueryInput(false)
+    inputRef?.current?.focus()
+  }
+
 
   React.useEffect(() => {
     inputRef?.current?.focus()
   }, [])
 
-  function wikiSearch() {
-    console.log('Performing wiki search...')
-
+  function handleWikiSearch(query: string) {
+    console.log(query)
+    window.location.assign('https://en.wikipedia.org/wiki/' + query.replace(' ', '_'))
   }
+
+  function activateQueryField(queryHandlerId: string) {
+    setShowQueryInput(true)
+    queryInputRef?.current?.focus()
+    setQueryHandlerId(queryHandlerId)
+  }
+
+  const [queryHandlerId, setQueryHandlerId] = React.useState('Please change the query handler id where necesseray')
 
   return (
     <div id='cmdk' className="raycast">
       <Command className='cmdk-topelement' value={value} onValueChange={(v) => setValue(v)}>
         <div cmdk-raycast-top-shine="" />
-        <Command.Input ref={inputRef} autoFocus placeholder="Search commands..." />
-        <hr cmdk-raycast-loader="" />
-        <QueryField onSubmit={() => {}} />
+        <div className='raycast-inputs'>
+          <Command.Input ref={inputRef} style={{ flex: '6 285px' }} autoFocus placeholder="Search commands..." />
+          {showQueryInput
+            ?
+            <Command className='cmd-query'>
+              <QueryField inputRef={queryInputRef} queryHandlerId={queryHandlerId} setVisibility={resetVisibility} />
+            </Command>
+            : <></>
+          }
+        </div>
         <hr cmdk-raycast-loader="" />
         <Command.List ref={listRef}>
           <Command.Empty>No results found.</Command.Empty>
-          <Command.Group heading="Suggestions">
-            <Item isCommand value="Search Wikipedia" onSelect={wikiSearch}>
+          <Command.Group heading="Navigation">
+            <Item isCommand value="Search Wikipedia" onSelect={activateQueryField} queryHandlerId="searchWiki">
               <Logo>
                 <MagnifyingGlassIcon
                   style={{
@@ -57,17 +127,27 @@ export function RaycastCMDK() {
               </Logo>
               Search Wikipedia
             </Item>
-            <Item value="Figma">
+            <Item isCommand value="Show Today's Featured Article" onSelect={callTAFPage}>
               <Logo>
-                <FigmaIcon />
+                <FileTextIcon
+                  style={{
+                    width: 12,
+                    height: 12,
+                  }}
+                />
               </Logo>
-              Figma
+              Show Today's Featured Article
             </Item>
-            <Item value="Slack">
+            <Item isCommand value="Show Random Article" onSelect={randomWikiPage}>
               <Logo>
-                <SlackIcon />
+                <ShuffleIcon
+                  style={{
+                    width: 12,
+                    height: 12,
+                  }}
+                />
               </Logo>
-              Slack
+              Show Random Article
             </Item>
             <Item value="YouTube">
               <Logo>
@@ -123,14 +203,16 @@ function Item({
   value,
   isCommand = false,
   onSelect,
+  queryHandlerId,
 }: {
   children: React.ReactNode
   value: string
   isCommand?: boolean
-  onSelect?: (() => void)
+  onSelect?: ((s: string) => void)
+  queryHandlerId?: string
 }) {
   return (
-    <Command.Item value={value} onSelect={() => { onSelect ? onSelect() : console.log('Please define handler for this item.') }}>
+    <Command.Item value={value} onSelect={() => { onSelect ? onSelect(queryHandlerId ? queryHandlerId : 'qhid not defined') : console.log('Please define handler for this item.') }}>
       {children}
       <span cmdk-raycast-meta="">{isCommand ? 'Command' : 'Application'}</span>
     </Command.Item>

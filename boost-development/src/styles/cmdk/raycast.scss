@@ -5,11 +5,24 @@
     max-width: 640px;
     margin-left: auto;
     margin-right: auto;
-    
+
 
     .cmdk-topelement {
       margin-left: auto;
       margin-right: auto;
+    }
+
+    .raycast-inputs {
+      display: flex;
+    }
+
+    [cmdk-root].cmd-query {
+      color: red;
+      padding: 0px;
+      margin-right: 8px;
+      border-radius: 8px;
+      box-shadow: unset;
+      background-color: var(--gray6);
     }
 
     [cmdk-root] {

@@ -5,7 +5,7 @@ import React from "react"
 import { HotKeys } from "react-hotkeys"
 
 const keyMap = {
-  DUMMY: ["cmd", "ü"]
+  DUMMY: ["cmd", "üasdf"]
 }
 
 import './styles/globals.scss'
@@ -24,7 +24,7 @@ function App() {
   const [visible, setVisible] = React.useState(false)
 
   const dummyHandler = React.useCallback(() => {
-    console.log("Keycombination detected!")
+    // console.log("Keycombination detected!")
   }, [])
 
   const handlers = {
