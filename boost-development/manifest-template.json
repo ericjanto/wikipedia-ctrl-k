@@ -1,0 +1,26 @@
+{
+  "name": "My www.wikipedia.org Custom Boost",
+  "version": "0.0.1",
+  "manifest_version": 3,
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.en.wikipedia.org/*"
+      ],
+      "css": [
+        "styles.css"
+      ],
+      "js": [
+        "content.js"
+      ]
+    }
+  ],
+  "permissions": ["webRequest", "https://*.openai.com/"],
+  "host_permissions": ["https://*.openai.com/"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  }
+}

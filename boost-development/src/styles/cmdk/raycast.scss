@@ -100,7 +100,7 @@
       padding: 8px 16px;
       outline: none;
       background: var(--bg) !important;
-      color: var(--gray12);
+      color: var(--gray12) !important;
 
       &::placeholder {
         color: var(--gray9);
