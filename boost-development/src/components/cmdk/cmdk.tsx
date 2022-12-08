@@ -3,19 +3,16 @@ import React from 'react'
 import * as Popover from '@radix-ui/react-popover'
 import { Command } from 'cmdk'
 import { Logo } from '../../components'
-import { ChatBubbleIcon, EyeClosedIcon, FileTextIcon, Half2Icon, MagnifyingGlassIcon, ShuffleIcon } from '@radix-ui/react-icons'
+import { ChatBubbleIcon, EyeClosedIcon, FileTextIcon, Half2Icon, MagnifyingGlassIcon, ShuffleIcon, TextIcon } from '@radix-ui/react-icons'
 import { wikidarkmodecss } from '../../styles/wiki-darkmode'
 
-window.addEventListener("message", (e) => {
-  const payload = e.data
-  if (payload.includes("ANSWER=")) {
-    const answer = e.data.replace("ANSWER=", "")
-    console.log("Received answer:", answer)
-  } else if (payload.includes("ERROR=")) {
-    const answer = e.data.replace("ERROR=", "")
-    console.log("Encountered error:", answer)
-  }
-})
+interface SectionsDict {
+  [key: string]: string | undefined
+}
+
+function summariseSection(sectionDict: SectionsDict, section: string) {
+
+}
 
 function askGeneralQuestion(query: string) {
   console.log(query)
@@ -24,6 +21,8 @@ function askGeneralQuestion(query: string) {
   // Move to react with useState for answer
 
   // Display answer in frontend
+
+  // Clear gpt answer on esc
 
   // Handle login error
 }
@@ -85,11 +84,9 @@ function toggleDarkMode(s: string) {
   const id = 'boostDarkmode'
   const isActive = document.getElementById(id)
   if (isActive) {
-    console.log('Deactivate')
     var styleSheet = document.getElementById(id)
     styleSheet?.remove()
   } else {
-    console.log('Activate')
     const styleSheet = document.createElement('style')
     styleSheet.innerText = wikidarkmodecss
     styleSheet.id = id
@@ -145,11 +142,16 @@ function QueryField({ inputRef, queryHandlerId, setVisibility }: {
 }
 
 export function RaycastCMDK() {
+  const sectionDict = getSections()
+
   const theme = 'light'
   const [value, setValue] = React.useState('linear')
   const inputRef = React.useRef<HTMLInputElement | null>(null)
   const queryInputRef = React.useRef<HTMLInputElement | null>(null)
   const listRef = React.useRef(null)
+
+  const [pages, setPages] = React.useState([])
+  const page = pages[pages.length - 1]
 
   const [showQueryInput, setShowQueryInput] = React.useState(false)
 
@@ -157,6 +159,28 @@ export function RaycastCMDK() {
     setShowQueryInput(false)
     inputRef?.current?.focus()
   }
+
+  const [gptAnswer, setGptAnswer] = React.useState('')
+
+  window.addEventListener("message", (e) => {
+    const payload = e.data
+    if (payload.includes("QUERY=")) {
+      setGptAnswer('loading')
+    }
+    if (payload.includes("ANSWER=")) {
+      const answer = e.data.replace("ANSWER=", "")
+      console.log("Received answer:", answer)
+      setGptAnswer('ANSWER=' + answer)
+    } else if (payload.includes("ERROR=")) {
+      const error = e.data.replace("ERROR=", "")
+      console.log("Encountered error:", error)
+      if (error == 'login') {
+        setGptAnswer('ERROR=login')
+      } else {
+        setGptAnswer('ERROR=unknown')
+      }
+    }
+  })
 
 
   React.useEffect(() => {
@@ -173,7 +197,19 @@ export function RaycastCMDK() {
 
   return (
     <div id='cmdk' className="raycast">
-      <Command className='cmdk-topelement' value={value} onValueChange={(v) => setValue(v)}>
+      <Command className='cmdk-topelement' value={value} onValueChange={(v) => setValue(v)}
+        onKeyDown={(e) => {
+          // Escape goes to previous page
+          // Backspace goes to previous page when search is empty
+          if (e.key == 'Escape' || (e.key === 'Backspace' && !value)) {
+            e.preventDefault()
+            if (page === 'gptAnswer') {
+              setGptAnswer('')
+            }
+            setPages((pages) => pages.slice(0, -1))
+          }
+        }}
+      >
         <div cmdk-raycast-top-shine="" />
         <div className='raycast-inputs'>
           <Command.Input ref={inputRef} style={{ flex: '6 285px' }} autoFocus placeholder="Search commands..." />
@@ -192,79 +228,131 @@ export function RaycastCMDK() {
         </div>
         <hr cmdk-raycast-loader="" />
         <Command.List ref={listRef}>
-          <Command.Empty>No results found.</Command.Empty>
-          <Command.Group heading="Navigation">
-            <Item isCommand value="Search Wikipedia" onSelect={activateQueryField} queryHandlerId="searchWiki">
-              <Logo>
-                <MagnifyingGlassIcon
-                  style={{
-                    width: 12,
-                    height: 12,
-                  }}
-                />
-              </Logo>
-              Search Wikipedia
-            </Item>
-            <Item isCommand value="Show Today's Featured Article" onSelect={callTAFPage}>
-              <Logo>
-                <FileTextIcon
-                  style={{
-                    width: 12,
-                    height: 12,
-                  }}
-                />
-              </Logo>
-              Show Today's Featured Article
-            </Item>
-            <Item isCommand value="Show Random Article" onSelect={randomWikiPage}>
-              <Logo>
-                <ShuffleIcon
-                  style={{
-                    width: 12,
-                    height: 12,
-                  }}
-                />
-              </Logo>
-              Show Random Article
-            </Item>
-          </Command.Group>
-          <Command.Group heading="Appearance">
-            <Item isCommand value="Toggle Focus Mode" onSelect={toggleFocusMode}>
-              <Logo>
-                <EyeClosedIcon
-                  style={{
-                    width: 12,
-                    height: 12,
-                  }}
-                />
-              </Logo>
-              Toggle Focus Mode
-            </Item>
-            <Item isCommand value="Toggle Dark Mode" onSelect={toggleDarkMode}>
-              <Logo>
-                <Half2Icon
-                  style={{
-                    width: 12,
-                    height: 12,
-                  }}
-                />
-              </Logo>
-              Toggle Dark Mode
-            </Item>
-          </Command.Group>
-          <Command.Group heading="AI Helper">
-            <Item value="Ask General Question" onSelect={activateQueryField} queryHandlerId="askGeneralQuestion">
-              <Logo>
-                <ChatBubbleIcon
-                  style={{
-                    width: 12,
-                    height: 12,
-                  }}
-                />
-              </Logo>
-              Ask General Question
-            </Item>
-          </Command.Group>
+          {!page && (
+            <>
+              <Command.Empty>No results found.</Command.Empty>
+              <Command.Group heading="Navigation">
+                <Item isCommand value="Search Wikipedia" onSelect={activateQueryField} queryHandlerId="searchWiki">
+                  <Logo>
+                    <MagnifyingGlassIcon
+                      style={{
+                        width: 12,
+                        height: 12,
+                      }}
+                    />
+                  </Logo>
+                  Search Wikipedia
+                </Item>
+                <Item isCommand value="Show Today's Featured Article" onSelect={callTAFPage}>
+                  <Logo>
+                    <FileTextIcon
+                      style={{
+                        width: 12,
+                        height: 12,
+                      }}
+                    />
+                  </Logo>
+                  Show Today's Featured Article
+                </Item>
+                <Item isCommand value="Show Random Article" onSelect={randomWikiPage}>
+                  <Logo>
+                    <ShuffleIcon
+                      style={{
+                        width: 12,
+                        height: 12,
+                      }}
+                    />
+                  </Logo>
+                  Show Random Article
+                </Item>
+              </Command.Group>
+              <Command.Group heading="Appearance">
+                <Item isCommand value="Toggle Focus Mode" onSelect={toggleFocusMode}>
+                  <Logo>
+                    <EyeClosedIcon
+                      style={{
+                        width: 12,
+                        height: 12,
+                      }}
+                    />
+                  </Logo>
+                  Toggle Focus Mode
+                </Item>
+                <Item isCommand value="Toggle Dark Mode" onSelect={toggleDarkMode}>
+                  <Logo>
+                    <Half2Icon
+                      style={{
+                        width: 12,
+                        height: 12,
+                      }}
+                    />
+                  </Logo>
+                  Toggle Dark Mode
+                </Item>
+              </Command.Group>
+              <Command.Group heading="AI Helper – ChatGPT">
+                <Item value="Ask General Question" onSelect={activateQueryField} queryHandlerId="askGeneralQuestion" setPages={setPages} page='gptAnswer' pages={pages}>
+                  <Logo>
+                    <ChatBubbleIcon
+                      style={{
+                        width: 12,
+                        height: 12,
+                      }}
+                    />
+                  </Logo>
+                  Ask General Question
+                </Item>
+                <Item value="Summarise Section" setPages={setPages} page='sectionGPTPage' pages={pages}>
+                  <Logo>
+                    <ChatBubbleIcon
+                      style={{
+                        width: 12,
+                        height: 12,
+                      }}
+                    />
+                  </Logo>
+                  Summarise Section
+                </Item>
+              </Command.Group>
+            </>
+          )}
+          {page === 'gptAnswer' && gptAnswer.includes("ANSWER=") && (
+            <div>
+              {gptAnswer.replace('ANSWER=', '')}
+            </div>
+          )}
+          {page === 'gptAnswer' && gptAnswer === 'ERROR=login' && (
+            <div>
+              Please login
+            </div>
+          )}
+          {page === 'gptAnswer' && gptAnswer === 'ERROR=unknown' && (
+            <div>
+              Didn't work & don't know why :( Sorry about that
+            </div>
+          )}
+          {page === 'gptAnswer' && gptAnswer === 'loading' && (
+            <Command.Loading>Waiting for ChatGPT response...</Command.Loading>
+          )}
+          {page === 'sectionGPTPage' && (
+            <Command.Group heading="Sections">
+              {Object.keys(sectionDict).map((item) => {
+                return (
+                  <Item key={item} value={item} setPages={setPages} page='gptAnswer' pages={pages} isSection>
+                    <Logo>
+                      <TextIcon
+                        style={{
+                          width: 12,
+                          height: 12,
+                        }}
+                      />
+                    </Logo>
+                    {item}
+                  </Item>
+                )
+              })}
+            </Command.Group>
+          )}
         </Command.List>
 
         <div cmdk-raycast-footer="">
@@ -281,7 +369,7 @@ export function RaycastCMDK() {
           <SubCommand listRef={listRef} selectedValue={value} inputRef={inputRef} />
         </div>
       </Command>
-    </div>
+    </div >
   )
 }
 
@@ -289,19 +377,35 @@ function Item({
   children,
   value,
   isCommand = false,
+  isSection = false,
   onSelect,
   queryHandlerId,
+  setPages,
+  page,
+  pages
 }: {
   children: React.ReactNode
   value: string
   isCommand?: boolean
+  isSection?: boolean
   onSelect?: ((s: string) => void)
   queryHandlerId?: string
+  setPages?: any
+  page?: string
+  pages?: any
 }) {
   return (
-    <Command.Item value={value} onSelect={() => { onSelect ? onSelect(queryHandlerId ? queryHandlerId : 'qhid not defined') : console.log('Please define handler for this item.') }}>
+    <Command.Item value={value}
+      onSelect={() => {
+        onSelect ?
+          onSelect(queryHandlerId ? queryHandlerId : 'qhid not defined')
+          : console.log('Please define handler for this item.')
+
+        setPages && page ? setPages([...pages, page]) : console.log(`Doesn't update page, no valid page provided: ${page}`)
+
+      }}>
       {children}
-      <span cmdk-raycast-meta="">{isCommand ? 'Command' : 'Information Retrieval'}</span>
+      <span cmdk-raycast-meta="">{isCommand ? 'Command' : (isSection ? 'Section' : 'Information Retrieval')}</span>
     </Command.Item>
   )
 }
@@ -401,6 +505,40 @@ function SubItem({ children, shortcut }: { children: React.ReactNode; shortcut: 
       </div>
     </Command.Item>
   )
+}
+
+function getSections() {
+  const h2s = document.querySelectorAll('h2')
+
+  const sectionsDict: SectionsDict = {}
+  // Skip first h2 as it's ToC
+  for (let i = 0; i < h2s.length; i++) {
+    let [title, content] = retrieveCurrentContent(h2s[i]!)
+    title = title!.replace("[edit]", '')
+    if (title == 'Navigation menu' || title == 'Contents') {
+      continue
+    }
+    content = content!.replace("\n", ' ')
+    if (content == '') {
+      continue
+    }
+    sectionsDict[title] = content
+  }
+  return sectionsDict
+}
+
+function retrieveCurrentContent(sectionHeader: HTMLHeadElement) {
+  var title = sectionHeader?.textContent
+  var contents = ''
+  var current = sectionHeader
+  while (current?.nextElementSibling?.tagName != 'h2' && current?.nextElementSibling) {
+    // @ts-expect-error
+    current = current.nextElementSibling
+    if (current.tagName == 'P') {
+      contents += current.textContent
+    }
+  }
+  return [title, contents]
 }
 
 function RaycastLightIcon() {
