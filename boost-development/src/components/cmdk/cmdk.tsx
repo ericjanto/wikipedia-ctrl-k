@@ -96,10 +96,15 @@ function toggleDarkMode(s: string) {
   }
 }
 
-function QueryField({ inputRef, queryHandlerId, setVisibility }: {
+function QueryField({ inputRef, queryHandlerId, setVisibility, setPages, pages, shouldSetPage, setShouldSetPage }: {
   inputRef: HTMLInputElement | null,
   queryHandlerId: string,
   setVisibility: React.Dispatch<React.SetStateAction<boolean>>,
+  setPages: any,
+  pages: any,
+  newPage: string,
+  shouldSetPage: any
+  setShouldSetPage: any
 }) {
   const [query, setQuery] = React.useState('')
   const handleSubmission = function (e: any) {
@@ -107,6 +112,10 @@ function QueryField({ inputRef, queryHandlerId, setVisibility }: {
     var keyCode = e.code || e.key;
     if (keyCode == 'Enter') {
       if (query) {
+        if (shouldSetPage) {
+          setPages([...pages, shouldSetPage])
+          // setShouldSetPage('')
+        }
         switch (queryHandlerId) {
           case "searchWiki": searchWiki(query)
             break
@@ -118,11 +127,17 @@ function QueryField({ inputRef, queryHandlerId, setVisibility }: {
             break
           default: console.log("Invalid queryHandlerId: ", queryHandlerId)
         }
-        setVisibility(false)
+
+        if (!shouldSetPage) {
+          setVisibility(false)
+        }
       }
     } else if (keyCode == 'Escape') {
       setQuery('')
       setVisibility(false)
+      if (shouldSetPage) {
+        setShouldSetPage('')
+      }
     }
   }
 
@@ -198,6 +213,7 @@ export function RaycastCMDK() {
   }
 
   const [queryHandlerId, setQueryHandlerId] = React.useState('Please change the query handler id where necesseray')
+  const [shouldSetPage, setShouldSetPage] = React.useState('')
 
   return (
     <div id='cmdk' className="raycast">
@@ -225,7 +241,12 @@ export function RaycastCMDK() {
                 // @ts-expect-error
                 inputRef={queryInputRef}
                 queryHandlerId={queryHandlerId}
-                setVisibility={resetVisibility} />
+                setVisibility={resetVisibility}
+                setPages={setPages}
+                pages={pages}
+                shouldSetPage={shouldSetPage}
+                setShouldSetPage={setShouldSetPage}
+              />
             </Command>
             : <></>
           }
@@ -294,8 +315,11 @@ export function RaycastCMDK() {
                   Toggle Dark Mode
                 </Item>
               </Command.Group>
-              <Command.Group heading="AI Helper – ChatGPT">
-                <Item value="Ask General Question" onSelect={activateQueryField} queryHandlerId="askGeneralQuestion" setPages={setPages} page='gptAnswer' pages={pages}>
+              <Command.Group heading="AI Helper">
+                <Item value="Ask General Question" onSelect={activateQueryField}
+                  queryHandlerId="askGeneralQuestion" setPages={setPages} page='gptAnswer' pages={pages}
+                  setShouldSetPage={setShouldSetPage}
+                >
                   <Logo>
                     <ChatBubbleIcon
                       style={{
@@ -306,7 +330,8 @@ export function RaycastCMDK() {
                   </Logo>
                   Ask General Question
                 </Item>
-                <Item value="Ask Question About Article Content" onSelect={activateQueryField} queryHandlerId="askQuestionAboutArticleContent" setPages={setPages} page='gptAnswer' pages={pages}>
+                <Item value="Ask Question About Article Content" onSelect={activateQueryField} queryHandlerId="askQuestionAboutArticleContent"
+                  setPages={setPages} page='gptAnswer' pages={pages} setShouldSetPage={setShouldSetPage}>
                   <Logo>
                     <ReaderIcon
                       style={{
@@ -437,6 +462,7 @@ function Item({
   page,
   pages,
   sectionDict,
+  setShouldSetPage,
 }: {
   children: React.ReactNode
   value: string
@@ -448,6 +474,7 @@ function Item({
   page?: string
   pages?: any
   sectionDict?: SectionDict
+  setShouldSetPage?: any
 }) {
   return (
     <Command.Item value={value}
@@ -460,11 +487,15 @@ function Item({
             : console.log('Please define handler for this item.')
         }
 
-        setPages && page ? setPages([...pages, page]) : console.log(`Doesn't update page, no valid page provided: ${page}`)
+        if (!setShouldSetPage) {
+          setPages && page ? setPages([...pages, page]) : console.log(`Doesn't update page, no valid page provided: ${page}`)
+        } else {
+          setShouldSetPage(page)
+        }
 
       }}>
       {children}
-      <span cmdk-raycast-meta="">{isCommand ? 'Command' : (isSection ? 'Section' : 'Information Retrieval')}</span>
+      <span cmdk-raycast-meta="">{isCommand ? 'Command' : (isSection ? 'Section' : 'ChatGPT')}</span>
     </Command.Item>
   )
 }
