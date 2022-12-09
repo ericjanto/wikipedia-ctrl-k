@@ -3,28 +3,30 @@ import React from 'react'
 import * as Popover from '@radix-ui/react-popover'
 import { Command } from 'cmdk'
 import { Logo } from '../../components'
-import { ChatBubbleIcon, EyeClosedIcon, FileTextIcon, Half2Icon, MagnifyingGlassIcon, ShuffleIcon, TextIcon } from '@radix-ui/react-icons'
+import { ChatBubbleIcon, EyeClosedIcon, FileTextIcon, Half2Icon, MagnifyingGlassIcon, QuoteIcon, ReaderIcon, ShuffleIcon, TextAlignBottomIcon, TextIcon } from '@radix-ui/react-icons'
 import { wikidarkmodecss } from '../../styles/wiki-darkmode'
 
-interface SectionsDict {
+interface SectionDict {
   [key: string]: string | undefined
 }
 
-function summariseSection(sectionDict: SectionsDict, section: string) {
+function askQuestionAboutArticle(articleTitle: string, question: string) {
+  const query = 'Consider ' + articleTitle + "and tell me: " + question
+  console.log("sending query: ", query)
+  window.postMessage("QUERY=" + query)
+}
 
+function simplifySection(sectionDict: SectionDict, section: string) {
+  const query = 'Tell me the meaning of the following text in simple words: ' + sectionDict[section]
+  window.postMessage("QUERY=" + query)
+}
+function summariseSection(sectionDict: SectionDict, section: string) {
+  const query = 'Summarise this text: ' + sectionDict[section]
+  window.postMessage("QUERY=" + query)
 }
 
 function askGeneralQuestion(query: string) {
-  console.log(query)
-  // Post query to window
   window.postMessage("QUERY=" + query)
-  // Move to react with useState for answer
-
-  // Display answer in frontend
-
-  // Clear gpt answer on esc
-
-  // Handle login error
 }
 
 function searchWiki(query: string) {
@@ -100,8 +102,6 @@ function QueryField({ inputRef, queryHandlerId, setVisibility }: {
   setVisibility: React.Dispatch<React.SetStateAction<boolean>>,
 }) {
   const [query, setQuery] = React.useState('')
-
-
   const handleSubmission = function (e: any) {
     if (!e) e = window.event;
     var keyCode = e.code || e.key;
@@ -111,6 +111,10 @@ function QueryField({ inputRef, queryHandlerId, setVisibility }: {
           case "searchWiki": searchWiki(query)
             break
           case "askGeneralQuestion": askGeneralQuestion(query)
+            break
+          case "askQuestionAboutArticleContent":
+            const articleTitle = document.querySelector("h1")!.innerText
+            askQuestionAboutArticle(articleTitle, query)
             break
           default: console.log("Invalid queryHandlerId: ", queryHandlerId)
         }
@@ -302,9 +306,20 @@ export function RaycastCMDK() {
                   </Logo>
                   Ask General Question
                 </Item>
+                <Item value="Ask Question About Article Content" onSelect={activateQueryField} queryHandlerId="askQuestionAboutArticleContent" setPages={setPages} page='gptAnswer' pages={pages}>
+                  <Logo>
+                    <ReaderIcon
+                      style={{
+                        width: 12,
+                        height: 12,
+                      }}
+                    />
+                  </Logo>
+                  Ask Question About Article Content
+                </Item>
                 <Item value="Summarise Section" setPages={setPages} page='sectionGPTPage' pages={pages}>
                   <Logo>
-                    <ChatBubbleIcon
+                    <QuoteIcon
                       style={{
                         width: 12,
                         height: 12,
@@ -313,32 +328,70 @@ export function RaycastCMDK() {
                   </Logo>
                   Summarise Section
                 </Item>
+                <Item value="Simplify Section" setPages={setPages} page='simplifySectionPage' pages={pages}>
+                  <Logo>
+                    <TextAlignBottomIcon
+                      style={{
+                        width: 12,
+                        height: 12,
+                      }}
+                    />
+                  </Logo>
+                  Simplify Section
+                </Item>
               </Command.Group>
             </>
           )}
           {page === 'gptAnswer' && gptAnswer.includes("ANSWER=") && (
-            <div>
-              {gptAnswer.replace('ANSWER=', '')}
-            </div>
+            <Command.Group heading="ChatGPT Answer">
+              <div className='gptAnswer'>
+                {gptAnswer.replace('ANSWER=', '')}
+              </div>
+            </Command.Group>
           )}
           {page === 'gptAnswer' && gptAnswer === 'ERROR=login' && (
-            <div>
-              Please login
+            <div className='gptAnswer'>
+              <p>You need to login at <a href="https://chat.openai.com" target="_blank">chat.openai.com</a> first.</p>
             </div>
           )}
           {page === 'gptAnswer' && gptAnswer === 'ERROR=unknown' && (
             <div>
-              Didn't work & don't know why :( Sorry about that
+              An unknown error occured. This wasn't planned. Obviously. Alas. Moving on. It's ok.
             </div>
           )}
           {page === 'gptAnswer' && gptAnswer === 'loading' && (
-            <Command.Loading>Waiting for ChatGPT response...</Command.Loading>
+            <Command.Loading>
+              <div className='gptAnswer gpt-loading'>
+                Waiting for ChatGPT response...
+              </div>
+            </Command.Loading>
           )}
           {page === 'sectionGPTPage' && (
             <Command.Group heading="Sections">
               {Object.keys(sectionDict).map((item) => {
                 return (
-                  <Item key={item} value={item} setPages={setPages} page='gptAnswer' pages={pages} isSection>
+                  <Item key={item} value={item} setPages={setPages} page='gptAnswer' pages={pages} isSection
+                    onSelect={summariseSection} sectionDict={sectionDict}>
+                    <Logo>
+                      <TextIcon
+                        style={{
+                          width: 12,
+                          height: 12,
+                        }}
+                      />
+                    </Logo>
+                    {item}
+                  </Item>
+                )
+              })}
+            </Command.Group>
+          )}
+          {page === 'simplifySectionPage' && (
+            <Command.Group heading="Sections">
+              {Object.keys(sectionDict).map((item) => {
+                return (
+                  <Item key={item} value={item} setPages={setPages} page='gptAnswer' pages={pages} isSection
+                    onSelect={simplifySection} sectionDict={sectionDict}>
                     <Logo>
                       <TextIcon
                         style={{
@@ -382,24 +435,30 @@ function Item({
   queryHandlerId,
   setPages,
   page,
-  pages
+  pages,
+  sectionDict,
 }: {
   children: React.ReactNode
   value: string
   isCommand?: boolean
   isSection?: boolean
-  onSelect?: ((s: string) => void)
+  onSelect?: any
   queryHandlerId?: string
   setPages?: any
   page?: string
   pages?: any
+  sectionDict?: SectionDict
 }) {
   return (
     <Command.Item value={value}
       onSelect={() => {
-        onSelect ?
-          onSelect(queryHandlerId ? queryHandlerId : 'qhid not defined')
-          : console.log('Please define handler for this item.')
+        if (sectionDict) {
+          onSelect(sectionDict, value)
+        } else {
+          onSelect ?
+            onSelect(queryHandlerId ? queryHandlerId : 'qhid not defined')
+            : console.log('Please define handler for this item.')
+        }
 
         setPages && page ? setPages([...pages, page]) : console.log(`Doesn't update page, no valid page provided: ${page}`)
 
@@ -510,7 +569,7 @@ function SubItem({ children, shortcut }: { children: React.ReactNode; shortcut: 
 function getSections() {
   const h2s = document.querySelectorAll('h2')
 
-  const sectionsDict: SectionsDict = {}
+  const sectionsDict: SectionDict = {}
   // Skip first h2 as it's ToC
   for (let i = 0; i < h2s.length; i++) {
     let [title, content] = retrieveCurrentContent(h2s[i]!)
@@ -534,7 +593,8 @@ function retrieveCurrentContent(sectionHeader: HTMLHeadElement) {
   while (current?.nextElementSibling?.tagName != 'h2' && current?.nextElementSibling) {
     // @ts-expect-error
     current = current.nextElementSibling
-    if (current.tagName == 'P') {
+    // Only scrape paragraphs and lists to facilitate more meaningful response from chatgpt
+    if (current.tagName == 'P' || current.tagName == 'UL') {
       contents += current.textContent
     }
   }

@@ -216,6 +216,30 @@
       padding-bottom: 40px;
     }
 
+    .gptAnswer {
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 14px;
+      color: var(--gray12) !important;
+    }
+
+    .gpt-loading {
+      color: var(--gray9);
+      animation: pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.5;
+      }
+    }
+
     [cmdk-raycast-open-trigger],
     [cmdk-raycast-subcommand-trigger] {
       color: var(--gray11);
