@@ -2,12 +2,94 @@
 import React, { MutableRefObject } from 'react'
 import { Command } from 'cmdk'
 import { Logo } from '../../components'
-import { ArrowLeftIcon, ChatBubbleIcon, ComponentBooleanIcon, EyeClosedIcon, FileTextIcon, GitHubLogoIcon, Half2Icon, MagnifyingGlassIcon, QuoteIcon, ReaderIcon, ShuffleIcon, TextAlignBottomIcon, TextIcon } from '@radix-ui/react-icons'
+import { ArrowLeftIcon, ArrowTopRightIcon, ChatBubbleIcon, ComponentBooleanIcon, EyeClosedIcon, FileTextIcon, GitHubLogoIcon, Half2Icon, MagnifyingGlassIcon, QuoteIcon, ReaderIcon, ShuffleIcon, TextAlignBottomIcon, TextIcon } from '@radix-ui/react-icons'
 import { wikidarkmodecss } from '../../styles/wiki-darkmode'
 import MarkdownIt from 'markdown-it'
 
 interface SectionDict {
   [key: string]: string | undefined
+}
+
+interface OptDict {
+  [key: string]: boolean
+}
+
+function parseCookie() {
+  const cookie = getCookie('arc-cmdk')
+  const parts = cookie.split('+')
+  parts.forEach((p) => {
+    const [optName, val] = p.split(':')
+    if (val === 'true') {
+      applyOption(optName)
+    }
+  })
+}
+
+function applyOption(optName: string) {
+  switch (optName) {
+    case 'dm':
+      // Check first if it's already active
+      const id = 'boostDarkmode'
+      const isActive = document.getElementById(id)
+      if (isActive) {
+        break
+      } else {
+        // If not, toggle it to active:
+        toggleDarkMode('')
+      }
+      break
+    case 'focus':
+      const nav = document.getElementById('mw-navigation')
+      const focusIsActivated = nav?.style.visibility == 'hidden' ? true : false
+      if (focusIsActivated) {
+        break
+      } else {
+        toggleFocusMode('')
+      }
+      break
+    case 'matcharc':
+      const activeTheme = document.getElementById('arc-theme')
+      if (activeTheme) {
+        break
+      } else {
+        matchArcTheme()
+      }
+      break
+    default:
+      console.error('Unexpected option for cookie: ', optName)
+  }
+}
+
+function changeCookieOption(optName: string, val: boolean) {
+  const cookie = getCookie('arc-cmdk')
+  const replaceString = optName + ':' + !val
+  const newCookie = cookie.replace(replaceString, optName + ':' + val)
+  // console.log('Set cookie from ', cookie)
+  // console.log('To ', newCookie)
+  setCookie('arc-cmdk', newCookie, 100)
+}
+
+function setCookie(cname: string, cvalue: string, exdays: number) {
+  const d = new Date();
+  d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+  let expires = "expires=" + d.toUTCString();
+  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+}
+
+function getCookie(cname: string) {
+  let name = cname + "=";
+  let decodedCookie = decodeURIComponent(document.cookie);
+  let ca = decodedCookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
 }
 
 function jumpToSection(sectionLinkDict: SectionDict, sectionName: string) {
@@ -16,7 +98,7 @@ function jumpToSection(sectionLinkDict: SectionDict, sectionName: string) {
   if (link) {
     window.location.href = link!
   } else {
-    console.log("Didn't work: ", sectionLinkDict, key)
+    // console.log("Didn't work: ", sectionLinkDict, key)
   }
   const root = document.getElementById('root')
   if (root) {
@@ -48,13 +130,12 @@ function getSectionLinkDict(sectionDict: SectionDict) {
 }
 
 function matchArcTheme() {
-
   const standard = document.documentElement.style.getPropertyValue(
     '--arc-palette-hover'
   )
 
   if (!standard) {
-    alert("Please enable Arc Theme access in the advanced options of Arc :) (You may need to restart Arc to apply the changes)")
+    // console.log("Please enable Arc Theme access in the advanced options of Arc :) (You may need to restart Arc to apply the changes)")
     return
   }
 
@@ -64,6 +145,7 @@ function matchArcTheme() {
   if (activeDarkmode) {
     var styleSheet = document.getElementById(id)
     styleSheet?.remove()
+    changeCookieOption('dm', false)
   }
 
   const activeTheme = document.getElementById('arc-theme')
@@ -72,6 +154,7 @@ function matchArcTheme() {
   const head = document.querySelector('#mw-page-base')
   if (activeTheme) {
     activeTheme.remove()
+    changeCookieOption('matcharc', false)
     if (content) {
       // @ts-ignore
       content!.style.backgroundColor = 'white'
@@ -82,6 +165,7 @@ function matchArcTheme() {
       head!.style.visibility = 'visible'
     }
   } else {
+    changeCookieOption('matcharc', true)
     // Create element which spans entire website, z-index=-1
     const div = document.createElement('div')
     div.id = 'arc-theme'
@@ -116,9 +200,9 @@ function matchArcTheme() {
       div.style.backgroundColor = 'var(--arc-background-simple-color)'
       div.style.opacity = '0.3'
     } else if (standard) {
-      alert("Configure an Arc Theme first! (And then trigger the command twice because there is a strange bug...)")
+      // console.log("Configure an Arc Theme first! (And then trigger the command twice because there is a strange bug...)")
     } else {
-      alert("Please enable Arc Theme access in the advanced options of Arc :) (And then trigger the command twice because there is a strange bug...)")
+      // console.log("Please enable Arc Theme access in the advanced options of Arc :) (And then trigger the command twice because there is a strange bug...)")
     }
 
     if (content) {
@@ -149,16 +233,16 @@ function matchArcTheme() {
 
 function askQuestionAboutArticle(articleTitle: string, question: string) {
   const query = 'Consider ' + articleTitle + "and tell me: " + question
-  console.log("sending query: ", query)
+  // console.log("sending query: ", query)
   window.postMessage("QUERY=" + query)
 }
 
 function simplifySection(sectionDict: SectionDict, section: string) {
-  const query = 'Tell me the meaning of the following text in simple words: ' + sectionDict[section]
+  const query = 'Tell me the meaning of the following text in simple words: ' + sectionDict[section.replace(" summarisesimplifysection", '')]
   window.postMessage("QUERY=" + query)
 }
 function summariseSection(sectionDict: SectionDict, section: string) {
-  const query = 'Summarise this text: ' + sectionDict[section]
+  const query = 'Summarise this text: ' + sectionDict[section.replace(" summarisesimplifysection", '')]
   window.postMessage("QUERY=" + query)
 }
 
@@ -190,6 +274,8 @@ function toggleFocusMode(s: string) {
   const nav = document.getElementById('mw-navigation')
   const footer = document.getElementById('footer')
   const content = document.getElementById('content')
+  const body = document.querySelector('body')
+  const pageBase = document.querySelector('#mw-page-base')
 
   const focusIsActivated = nav?.style.visibility == 'hidden' ? true : false
 
@@ -202,8 +288,15 @@ function toggleFocusMode(s: string) {
     content.style.marginLeft = '5em'
     // @ts-expect-error
     content.style.marginRight = '5em'
+    // // @ts-expect-error
+    // content.style.borderRightWidth = '1px'
     // @ts-expect-error
-    content.style.borderRightWidth = '1px'
+    body.style.backgroundColor = '#ffffff'
+    // @ts-expect-error
+    pageBase.style.visibility = 'hidden'
+    // @ts-expect-error
+    content.style.border = '0px solid #ffffff'
+    changeCookieOption('focus', true)
   } else {
     // @ts-expect-error
     nav.style.visibility = 'unset'
@@ -211,8 +304,15 @@ function toggleFocusMode(s: string) {
     footer.style.visibility = 'unset'
     // @ts-expect-error
     content.style.marginLeft = '10em'
+    // // @ts-expect-error
+    // content.style.borderRightWidth = '0'
     // @ts-expect-error
-    content.style.borderRightWidth = '0'
+    body.style.backgroundColor = '#f6f6f6'
+    // @ts-expect-error
+    pageBase.style.visibility = 'visible'
+    // @ts-expect-error
+    content.style.border = '1px solid #a7d7f9'
+    changeCookieOption('focus', false)
   }
 
   // Determine via visibility of a specific element which is always there whether focus mode
@@ -223,6 +323,7 @@ function toggleDarkMode(s: string) {
   const activeTheme = document.getElementById('arc-theme')
   if (activeTheme) {
     activeTheme.remove()
+    changeCookieOption('matcharc', false)
   }
 
   const id = 'boostDarkmode'
@@ -230,11 +331,13 @@ function toggleDarkMode(s: string) {
   if (isActive) {
     var styleSheet = document.getElementById(id)
     styleSheet?.remove()
+    changeCookieOption('dm', false)
   } else {
     const styleSheet = document.createElement('style')
     styleSheet.innerText = wikidarkmodecss
     styleSheet.id = id
     document.head.appendChild(styleSheet)
+    changeCookieOption('dm', true)
   }
 }
 
@@ -267,7 +370,8 @@ function QueryField({ inputRef, queryHandlerId, setVisibility, setPages, pages, 
             const articleTitle = document.querySelector("h1")!.innerText
             askQuestionAboutArticle(articleTitle, query)
             break
-          default: console.log("Invalid queryHandlerId: ", queryHandlerId)
+          default:
+          // console.log("Invalid queryHandlerId: ", queryHandlerId)
         }
 
         if (!shouldSetPage) {
@@ -303,10 +407,19 @@ function QueryField({ inputRef, queryHandlerId, setVisibility, setPages, pages, 
 }
 
 export function RaycastCMDK() {
+  if (!getCookie('arc-cmdk')) {
+    // console.log('Creating new cookie.')
+    const optStr = 'dm:false+focus:false+matcharc:false'
+    setCookie('arc-cmdk', optStr, 100)
+    // console.log("Created cookie: ", getCookie('arc-cmdk'))
+  }
+
+  parseCookie()
+
   const markdown = new MarkdownIt()
   const sectionDict = getSections()
   const sectionLinkDict = getSectionLinkDict(sectionDict)
-  console.log(sectionLinkDict)
+  // console.log(sectionLinkDict)
 
   const theme = 'light'
   const [value, setValue] = React.useState('linear')
@@ -328,7 +441,10 @@ export function RaycastCMDK() {
 
   React.useEffect(() => {
     if (gptAnswer.includes("ANSWER=")) {
-      document.querySelector("#answer")!.innerHTML = markdown.render(gptAnswer.replace('ANSWER=', ''));
+      const answer = document.querySelector("#answer")
+      if (answer) {
+        answer.innerHTML = markdown.render(gptAnswer.replace('ANSWER=', ''));
+      }
     }
   }, [gptAnswer])
 
@@ -339,11 +455,11 @@ export function RaycastCMDK() {
     }
     if (payload.includes("ANSWER=")) {
       const answer = e.data.replace("ANSWER=", "")
-      console.log("Received answer:", answer)
+      // console.log("Received answer:", answer)
       setGptAnswer('ANSWER=' + answer)
     } else if (payload.includes("ERROR=")) {
       const error = e.data.replace("ERROR=", "")
-      console.log("Encountered error:", error)
+      // console.log("Encountered error:", error)
       if (error == 'login') {
         setGptAnswer('ERROR=login')
       } else {
@@ -498,7 +614,7 @@ export function RaycastCMDK() {
                   <Item isCommand value="Jump to Section" setPages={setPages} page='sectionJumpPage' pages={pages} inputRef={inputRef}
                   >
                     <Logo>
-                      <QuoteIcon
+                      <ArrowTopRightIcon
                         style={{
                           width: 12,
                           height: 12,
@@ -506,44 +622,6 @@ export function RaycastCMDK() {
                       />
                     </Logo>
                     Jump to Section
-                  </Item>
-                </Command.Group>
-                <Command.Group heading="Appearance">
-                  <Item isCommand value="Toggle Focus Mode" onSelect={toggleFocusMode} inputRef={inputRef}
-                  >
-                    <Logo>
-                      <EyeClosedIcon
-                        style={{
-                          width: 12,
-                          height: 12,
-                        }}
-                      />
-                    </Logo>
-                    Toggle Focus Mode
-                  </Item>
-                  <Item isCommand value="Toggle Dark Mode" onSelect={toggleDarkMode} inputRef={inputRef}
-                  >
-                    <Logo>
-                      <Half2Icon
-                        style={{
-                          width: 12,
-                          height: 12,
-                        }}
-                      />
-                    </Logo>
-                    Toggle Dark Mode
-                  </Item>
-                  <Item isCommand value="Match Arc Theme Matching" onSelect={matchArcTheme} inputRef={inputRef}
-                  >
-                    <Logo>
-                      <ComponentBooleanIcon
-                        style={{
-                          width: 12,
-                          height: 12,
-                        }}
-                      />
-                    </Logo>
-                    Toggle Arc Theme Matching
                   </Item>
                 </Command.Group>
                 <Command.Group heading="AI Helper">
@@ -603,6 +681,44 @@ export function RaycastCMDK() {
                     Simplify Section
                   </Item>
                 </Command.Group>
+                <Command.Group heading="Appearance">
+                  <Item isCommand value="Toggle Focus Mode" onSelect={toggleFocusMode} inputRef={inputRef}
+                  >
+                    <Logo>
+                      <EyeClosedIcon
+                        style={{
+                          width: 12,
+                          height: 12,
+                        }}
+                      />
+                    </Logo>
+                    Toggle Focus Mode
+                  </Item>
+                  <Item isCommand value="Toggle Dark Mode" onSelect={toggleDarkMode} inputRef={inputRef}
+                  >
+                    <Logo>
+                      <Half2Icon
+                        style={{
+                          width: 12,
+                          height: 12,
+                        }}
+                      />
+                    </Logo>
+                    Toggle Dark Mode
+                  </Item>
+                  <Item isCommand value="Match Arc Theme Matching" onSelect={matchArcTheme} inputRef={inputRef}
+                  >
+                    <Logo>
+                      <ComponentBooleanIcon
+                        style={{
+                          width: 12,
+                          height: 12,
+                        }}
+                      />
+                    </Logo>
+                    Toggle Arc Theme Matching
+                  </Item>
+                </Command.Group>
               </>
             )}
             {page === 'gptAnswer' && gptAnswer.includes("ANSWER=") && (
@@ -615,21 +731,35 @@ export function RaycastCMDK() {
               </>
             )}
             {page === 'gptAnswer' && gptAnswer === 'ERROR=login' && (
-              <div className='gptAnswer'>
-                <h3>ChatGPT Answer</h3>
-                <p>You need to login at <a href="https://chat.openai.com" target="_blank">chat.openai.com</a> first.</p>
-              </div>
+              <>
+                <div className='gptAnswer'
+                >
+                  <h3>ChatGPT Answer</h3>
+                </div>
+                <div className='gptAnswer'>
+                  <p>You need to login at <a href="https://chat.openai.com" target="_blank">chat.openai.com</a> first.</p>
+                </div>
+              </>
             )}
             {page === 'gptAnswer' && gptAnswer === 'ERROR=unknown' && (
-              <div className='gptAnswer'>
-                <h3>ChatGPT Answer</h3>
-                An unknown error occured. This wasn't planned. Obviously. Alas. Moving on. It's ok.
-              </div>
+              <>
+                <div className='gptAnswer'
+                >
+                  <h3>ChatGPT Answer</h3>
+                </div>
+                <div className='gptAnswer'>
+                  An unknown error occured. This wasn't planned. Obviously. Alas. Moving on. It's ok.
+                </div>
+              </>
             )}
             {page === 'gptAnswer' && gptAnswer === 'loading' && (
               <Command.Loading>
-                <div className='gptAnswer'>
+
+                <div className='gptAnswer'
+                >
                   <h3>ChatGPT Answer</h3>
+                </div>
+                <div className='gptAnswer'>
                   <div className='gpt-loading'>Waiting for ChatGPT response...</div>
                 </div>
               </Command.Loading>
@@ -787,11 +917,13 @@ function Item({
         } else {
           onSelect ?
             onSelect(queryHandlerId ? queryHandlerId : 'qhid not defined')
-            : console.log('Please define handler for this item.')
+            : {}
+          // console.log('Please define handler for this item.')
         }
 
         if (!setShouldSetPage) {
-          setPages && page ? setPages([...pages, page]) : console.log(`Doesn't update page, no valid page provided: ${page}`)
+          setPages && page ? setPages([...pages, page]) : {}
+          // console.log(`Doesn't update page, no valid page provided: ${page}`)
         } else {
           setShouldSetPage(page)
         }
