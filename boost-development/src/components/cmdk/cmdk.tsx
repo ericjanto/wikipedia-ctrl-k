@@ -570,7 +570,7 @@ export function RaycastCMDK() {
               : <></>
             }
           </div>
-          <hr cmdk-raycast-loader="" />
+          <hr cmdk-raycast-loader="" className={gptAnswer === 'loading' ? 'animation-on': ''}/>
           <Command.List ref={listRef}>
             {!page && (
               <>
@@ -754,7 +754,6 @@ export function RaycastCMDK() {
             )}
             {page === 'gptAnswer' && gptAnswer === 'loading' && (
               <Command.Loading>
-
                 <div className='gptAnswer'
                 >
                   <h3>ChatGPT Answer</h3>

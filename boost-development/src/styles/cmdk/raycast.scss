@@ -179,6 +179,36 @@
       }
     }
 
+    [cmdk-raycast-loader].animation-on {
+      --loader-color: var(--gray9);
+      border: 0;
+      width: 100%;
+      width: 100%;
+      left: 0;
+      height: 1px;
+      background: var(--gray6);
+      position: relative;
+      overflow: visible;
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 0px;
+
+      &:after {
+        content: '';
+        width: 50%;
+        height: 1px;
+        position: absolute;
+        background: linear-gradient(90deg, transparent 0%, var(--loader-color) 50%, transparent 100%);
+        top: -1px;
+        opacity: 0;
+        animation-duration: 1.8s;
+        animation-iteration-count: infinite;
+        animation-delay: 1s;
+        animation-timing-function: ease;
+        animation-name: loading;
+      }
+    }
+
     [cmdk-item] {
       content-visibility: auto;
 
@@ -258,7 +288,7 @@
 
     .gpt-loading {
       color: var(--gray9);
-      animation: pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      // animation: pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     }
 
     @keyframes pulse {
