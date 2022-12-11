@@ -1,5 +1,3 @@
-*This repository contains code and information for a Hackathon submission, and is change to subject after the 
-
 # Wikipedia Boost: ctrl-k
 
 ![Screenshot showing the wiki ctrl-k menu](main.png)
