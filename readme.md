@@ -23,17 +23,17 @@
 7. Copy the contents of `manifest.json` from `boost-template` into that file, and safe it.
 8. Restart Arc to apply the manifest changes.
 
-Press `ctrl + k` and you should be good to go, enjoy!
+Go to an English Wikipedia article, press `ctrl + k` and you should be good to go, enjoy!
 
 ## Description of the boost
 
 ### Why is it important to me?
 
-This boost is important to me out of three reasons:
+This boost is important to me because of three reasons:
 
-1. Makes Wikipedia (much) more useful to me, and hopefully to many other people as well.
-2. Makes Wikipedia feel more like my own corner of the Internet by being able to change its appearance. Staring at those cold and lifeless colours of Wikipedia for hours and hours when planning a literature review can be depressing! So that's what this boost helps me to avoid.
-3. The boost is the result of stress-testing the limitations of boosts in Arc. Can it communicate with APIs, in a cross-origin manner? Can it access cookies; in general, how does it respond to giving or removing boost permissions? What can I do with the `manifest.json` file? Is it possible to use Typescript and Javascript frameworks to develop the boost? I learned about all these things when I developed this boost, it was a valuable lesson. The result (this boost) is something I am quite proud of, so thank you for motivating me to build this by hosting this hackathon:)
+1. It makes Wikipedia (much) more useful to me, and hopefully to many other people as well.
+2. It makes Wikipedia feel more like my own corner of the Internet by being able to change its appearance. Staring at those cold and lifeless colours of Wikipedia for hours and hours when planning a literature review can be depressing! So that's what this boost helps me to avoid.
+3. It is the result of stress-testing the limitations of boosts in Arc. Can it communicate with APIs, in a cross-origin manner? Can it access and manipulate cookies to enable state-management; in general, how does it respond to giving or removing boost permissions? What can I do with the `manifest.json` file? Is it possible to use Typescript and Javascript frameworks to develop the boost? I learned about all these things when I developed this boost, it was a valuable lesson. The result (this boost) is something I am quite proud of, so thank you for motivating me to build this by hosting this hackathon:)
 
 ### What does it do, what has it let me do with the Internet?
 
@@ -70,13 +70,15 @@ The main purpose of Wikipedia is to provide information. If a user fails to retr
 
 I developed this boost not only around personal and predicted other people's needs, but also around the below judging criteria.
 
-**Utility** is improved by all of the provided navigation, appearance, and AI helper commmands improve the utility of Wikipedia. However, I believe that the AI helper will make the most difference to users as they learn how to create goal-directed prompts to retrieve the information they need. This should have a meaningful **Impact** on how users engage with Wikipedia. It (hopefully) motivates people to spend more time on consuming, curating, and enjoying the vast Wikipedia knowledge rather than spending it on Netflix or shopping on Amazon (which is why I chose to build a boost for Wikipedia and an entertainment website).
+All of the provided navigation, appearance, and AI helper commmands improve the **utility** of Wikipedia. However, I believe that especially the AI helper will make the most difference to users as they learn how to create goal-directed prompts to retrieve the information they need, in combination with reading a Wikipedia article. This should have a meaningful **Impact** on how users engage with Wikipedia. It (hopefully) motivates people to spend more time on consuming, curating, and enjoying the vast Wikipedia knowledge rather than spending it on Netflix or shopping on Amazon (which is why I chose to build a boost for Wikipedia and not an entertainment website).
 
 When it comes to visual **creativity**, this boost is certainly more subtle at a first glange. When installed, the Wikipdia page is even exactly the same as the original one! My goal was to keep the appearance of the original Wikipedia page more or less unchanged as the goal of that page is to provide information, and I believe that a boastful, colorful appearance change would defeat the purpose of the page. This boost enables users to customise Wikipedia **to their needs and desires**, ranging from subtle changes to more impactful ones.
 
 Another kind of **creativity** which is showcased by this boost: during development, I had to get creative when designing prompts for the language model. How do I provide it with the necessary article context without diluting the original question? How to I simplify a section with the model?
 
 On a last note, the design of the menu was inspired by Raycast, one of my favourite macOS apps.
+
+If you're still reading this, you're amazing! I hope you have a good day.
 
 ## Local build
 *For after-hackathon purposes and myself, judges may ignore this.*
