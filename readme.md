@@ -58,6 +58,8 @@ The main purpose of Wikipedia is to provide information. If a user fails to retr
 - **Summarise section**: this summarises a specified section. Useful for quick knowledge exploration.
 - **Simplify section**: this expresses a specified section in simpler terms. Useful to tackle comprehension problems.
 
+Please note that large language models have their disadvantages. As such, the retrieved answered might not be 100% factually correct. Bear this in your mind when using this tool.
+
 #### Appearance
 
 ![Screenshot of a Wikipedia page stylised using this boost. It matches the Arc theme (colourful background gradient) and has focus mode enabled](appearance.png)
