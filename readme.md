@@ -14,8 +14,6 @@
       - [Appearance](#appearance)
   - [Response to judging criteria](#response-to-judging-criteria)
   - [Local build](#local-build)
-  - [The background worker code is based on a custom variation of this code, and is currently not an output of the `build` process.](#the-background-worker-code-is-based-on-a-custom-variation-of-this-code-and-is-currently-not-an-output-of-the-build-process)
-      - [h4 render test](#h4-render-test)
 
 ## Installation
 1. Go to the [English Wikipedia page](https://en.wikipedia.org/wiki/Main_Page).
@@ -86,8 +84,3 @@ creativity, utility and impact of the Boost
 This will create `dist/index.html` which contains transpiled the Javascript code between the `<script><script/>` tags, and similarly the styles.
 
 The background worker code is based on a custom variation of [this code](https://github.com/wong2/chat-gpt-google-extension/tree/main/src/background), and is currently not an output of the `build` process.
-- 
-- Requirements analysis
-- 
-
-#### h4 render test
