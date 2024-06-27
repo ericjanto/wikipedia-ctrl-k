@@ -1,6 +1,5 @@
-*Note: I'm planning to put this project under active development. Presently, I will put up a roadmap and some issues, they are a good starting point if you would like to get involved.*
-
 # Wikipedia Boost: ctrl-k
+*This is a project I completed as part of a Hackathon organised by the Browser Company. My contribution was ranked top 10 overall (with >100 contributions overall).*
 
 ![Screenshot showing the wiki ctrl-k menu](main.png)
 
